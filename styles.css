@@ -1405,7 +1405,7 @@ body {
 /* ===== PARTNER INFINITE SCROLL ===== */
 .partners-section {
     padding: 3rem 0;
-    background: var(--bg-primary); /* Menyatu dengan background utama */
+    background: var(--bg-primary);
     border-bottom: 1px solid var(--glass-border);
     overflow: hidden;
 }
@@ -1423,7 +1423,7 @@ body {
     width: 100%;
 }
 
-/* Efek Fade di Kiri dan Kanan agar terlihat halus */
+/* Efek Fade (Gradasi) di Kiri dan Kanan */
 .slider::before,
 .slider::after {
     background: linear-gradient(to right, var(--bg-primary) 0%, rgba(255, 255, 255, 0) 100%);
@@ -1432,6 +1432,7 @@ body {
     position: absolute;
     width: 150px;
     z-index: 2;
+    pointer-events: none; /* Agar klik tembus ke logo di bawahnya */
 }
 
 .slider::after {
@@ -1446,9 +1447,11 @@ body {
 }
 
 .slide-track {
-    animation: scroll 30s linear infinite;
+    animation: scroll 40s linear infinite;
     display: flex;
-    width: calc(200px * 14); /* 200px dikali jumlah total slide (7 asli + 7 duplikat) */
+    /* Lebar total = (Lebar slide * Jumlah total slide) */
+    /* 200px * 14 slide (7 asli + 7 duplikat) */
+    width: calc(200px * 14); 
 }
 
 .slide {
@@ -1457,37 +1460,92 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0 20px; /* Jarak antar logo */
 }
 
-/* Gaya Logo / Teks Partner */
-.partner-icon {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.8rem;
-    font-weight: 800;
-    font-style: normal;
-    color: #4b5563; /* Warna Abu-abu Default */
-    transition: all 0.3s ease;
-    cursor: pointer;
-    /* Jika menggunakan gambar img, gunakan filter: grayscale(100%); */
-}
-
-/* Efek Hover Neon Ungu */
-.partner-icon:hover {
-    color: var(--accent); /* Warna Ungu Neon */
-    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); /* Efek Glowing */
-    transform: scale(1.1); /* Sedikit membesar */
+/* Gaya Gambar Logo */
+.partner-logo {
+    max-width: 140px;
+    max-height: 60px;
+    object-fit: contain;
     
-    /* Jika menggunakan gambar img, gunakan kode ini: */
-    /* filter: grayscale(0%) drop-shadow(0 0 5px var(--accent)); */
+    /* Efek Abu-abu Default */
+    filter: grayscale(100%) opacity(0.5) brightness(0.8);
+    transition: all 0.4s ease;
+    cursor: pointer;
 }
 
-/* Animasi Jalan */
+/* Efek Hover: Menjadi Ungu Neon & Terang (Tanpa Stop Animasi) */
+.partner-logo:hover {
+    /* Penjelasan filter:
+       grayscale(0%) -> Warna asli muncul (jika ada)
+       brightness(1.2) -> Logo jadi lebih terang
+       drop-shadow -> Efek cahaya ungu di sekeliling logo
+    */
+    filter: grayscale(0%) opacity(1) brightness(1.2) drop-shadow(0 0 8px var(--accent));
+    transform: scale(1.1); /* Sedikit membesar */
+}
+
+/* Animasi Jalan Terus Menerus */
 @keyframes scroll {
     0% { transform: translateX(0); }
-    100% { transform: translateX(calc(-200px * 7)); } /* Geser sejauh jumlah item asli */
+    100% { transform: translateX(calc(-200px * 7)); } /* Geser sejauh set logo asli */
 }
 
-/* Pause animasi saat user hover di area slider */
-.slider:hover .slide-track {
-    animation-play-state: paused;
+/* ===== SOCIAL MEDIA ICONS ===== */
+.footer-social h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.social-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Hover Effects with Brand Colors */
+.social-icon:hover {
+    transform: translateY(-3px);
+    color: white;
+    border-color: transparent;
+}
+
+.social-icon.instagram:hover {
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+    box-shadow: 0 5px 15px rgba(214, 36, 159, 0.3);
+}
+
+.social-icon.facebook:hover {
+    background: #1877F2;
+    box-shadow: 0 5px 15px rgba(24, 119, 242, 0.3);
+}
+
+.social-icon.whatsapp:hover {
+    background: #25D366;
+    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+}
+
+.social-icon.tiktok:hover {
+    background: linear-gradient(45deg, #000000, #25F4EE, #FE2C55);
+    box-shadow: 0 5px 15px rgba(254, 44, 85, 0.3);
 }
