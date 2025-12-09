@@ -24,6 +24,7 @@
             <ul class="nav-menu">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="catalog.html">Catalog</a></li>
+                <li><a href="about.html">About Us</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="#" class="cart-icon" onclick="showCart()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -53,19 +54,31 @@
 
     <section class="best-sellers" style="padding: 4rem 0;">
         <div class="container">
-            <h2 class="section-title" data-aos="fade-up">Produk Terlaris</h2>
+            <h2 class="section-title" data-aos="fade-up">Best Product</h2>
             <div class="product-grid" id="bestSellerGrid">
                 </div>
         </div>
     </section>
 
-    <section class="minigame-section" id="minigameSection" data-aos="zoom-in">
+    <section class="wheel-section" id="wheelSection" data-aos="zoom-in">
         <div class="container">
-            <div class="game-card">
-                <h2>🎮 Main & Menang Voucher!</h2>
-                <p>Coba keberuntunganmu untuk mendapatkan diskon spesial.</p>
-                <div id="gameArea">
-                    <button class="btn btn-primary" onclick="playMinigame()">Mainkan Sekarang</button>
+            <div class="wheel-container">
+                <div class="wheel-text">
+                    <h2>🎡 Putar & Menangkan!</h2>
+                    <p>Putar roda keberuntungan untuk mendapatkan diskon spesial hingga 20% atau Gratis Ongkir!</p>
+                    <div id="wheelResult" class="wheel-result"></div>
+                </div>
+                <div class="wheel-wrapper">
+                    <div class="wheel-pointer">▼</div>
+                    <div class="wheel" id="wheel">
+                        <div class="segment" style="--i:1; --clr:#ff5252;"><span>ZONK</span></div>
+                        <div class="segment" style="--i:2; --clr:#448aff;"><span>10%</span></div>
+                        <div class="segment" style="--i:3; --clr:#69f0ae;"><span>5%</span></div>
+                        <div class="segment" style="--i:4; --clr:#e040fb;"><span>FREE</span></div>
+                        <div class="segment" style="--i:5; --clr:#ffd740;"><span>20%</span></div>
+                        <div class="segment" style="--i:6; --clr:#ffab40;"><span>15%</span></div>
+                    </div>
+                    <button class="spin-btn" onclick="spinWheel()">SPIN</button>
                 </div>
             </div>
         </div>
@@ -164,6 +177,7 @@
                     <h4>Quick Links</h4>
                     <a href="index.html">Home</a>
                     <a href="catalog.html">Catalog</a>
+                    <a href="about.html">About Us</a>
                     <a href="contact.html">Contact</a>
                 </div>
                 <div class="footer-contact">
@@ -229,6 +243,13 @@
                     <button type="submit" class="btn btn-primary btn-full">Selesaikan Pesanan</button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content product-modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
