@@ -1,6 +1,6 @@
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
-    // Init AOS jika ada
+    // Init AOS (Animate On Scroll)
     if (typeof AOS !== 'undefined') {
         AOS.init({duration: 800, easing: 'ease-in-out', once: true, offset: 100});
     }
@@ -14,9 +14,22 @@ document.addEventListener('DOMContentLoaded', function() {
         loadFlashSale();
         updateCartCount();
         
-        // Wheel Logic Check
-        if(!localStorage.getItem('wheelPlayed') && document.getElementById('wheelSection')) {
-            setTimeout(() => {}, 3000);
+        // Wheel of Fortune: Cek Reset Harian (24 Jam)
+        const lastPlayed = localStorage.getItem('wheelPlayedTime');
+        if (lastPlayed) {
+            const oneDay = 24 * 60 * 60 * 1000; // 24 jam dalam milidetik
+            const now = new Date().getTime();
+            // Jika sudah lewat 24 jam, reset agar bisa main lagi
+            if (now - parseInt(lastPlayed) > oneDay) {
+                localStorage.removeItem('wheelPlayedTime');
+            }
+        }
+        
+        // Auto scroll ke wheel jika belum dimainkan hari ini (Opsional)
+        if(!localStorage.getItem('wheelPlayedTime') && document.getElementById('wheelSection')) {
+            setTimeout(() => {
+                // document.getElementById('wheelSection').scrollIntoView({behavior: 'smooth'});
+            }, 3000);
         }
     }
 });
@@ -53,9 +66,34 @@ const products = [
 // ===== GLOBAL VARS =====
 let cart = JSON.parse(localStorage.getItem('serenityCart')) || [];
 let currentFilter = 'all';
+let searchQuery = ''; // Variabel untuk pencarian
 let currentPage = 1;
 const itemsPerPage = 10;
 let activeDiscount = 0;
+
+// ===== SEARCH & FILTER LOGIC =====
+function searchProducts() {
+    const input = document.getElementById('searchInput');
+    if (input) {
+        searchQuery = input.value.toLowerCase();
+        currentPage = 1; // Reset ke halaman 1 saat mencari
+        loadProducts();
+    }
+}
+
+function filterProducts(category) {
+    currentFilter = category;
+    searchQuery = ''; // Reset search saat ganti kategori
+    
+    // Reset tampilan input search jika ada
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) searchInput.value = '';
+    
+    currentPage = 1;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    if(event && event.target) event.target.classList.add('active');
+    loadProducts();
+}
 
 // ===== CART SYSTEM =====
 function addToCart(id) {
@@ -95,91 +133,79 @@ function updateCartCount() {
     if (el) el.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
 }
 
-// ===== PAYMENT PAGE LOGIC (NEW) =====
+// ===== PAYMENT PAGE LOGIC =====
 function initPaymentPage() {
-    // Ambil data pesanan sementara
     const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder'));
     
     if (!pendingOrder || !pendingOrder.cart || pendingOrder.cart.length === 0) {
-        // Jika tidak ada data, kembalikan ke home
         window.location.href = 'index.html';
         return;
     }
 
-    // Render Item List
     const itemList = document.getElementById('paymentOrderItems');
-    itemList.innerHTML = pendingOrder.cart.map(item => `
-        <div class="summary-item">
-            <img src="${item.image}" alt="${item.name}">
-            <div class="item-text">
-                <h4>${item.name}</h4>
-                <p>${item.quantity} x Rp ${item.price.toLocaleString('id-ID')}</p>
+    if(itemList) {
+        itemList.innerHTML = pendingOrder.cart.map(item => `
+            <div class="summary-item">
+                <img src="${item.image}" alt="${item.name}">
+                <div class="item-text">
+                    <h4>${item.name}</h4>
+                    <p>${item.quantity} x Rp ${item.price.toLocaleString('id-ID')}</p>
+                </div>
+                <div class="item-total">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</div>
             </div>
-            <div class="item-total">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</div>
-        </div>
-    `).join('');
+        `).join('');
+    }
 
-    // Render Totals
-    document.getElementById('paySubtotal').innerText = pendingOrder.subtotal;
-    document.getElementById('payDiscount').innerText = pendingOrder.discount;
-    document.getElementById('payShipping').innerText = `Rp ${pendingOrder.shipping.toLocaleString('id-ID')}`;
-    document.getElementById('payTotal').innerText = pendingOrder.total;
+    if(document.getElementById('paySubtotal')) document.getElementById('paySubtotal').innerText = pendingOrder.subtotal;
+    if(document.getElementById('payDiscount')) document.getElementById('payDiscount').innerText = pendingOrder.discount;
+    if(document.getElementById('payShipping')) document.getElementById('payShipping').innerText = `Rp ${pendingOrder.shipping.toLocaleString('id-ID')}`;
+    if(document.getElementById('payTotal')) document.getElementById('payTotal').innerText = pendingOrder.total;
 
-    // Render Customer Info
-    document.getElementById('customerDetails').innerHTML = `
-        <p><strong>Penerima:</strong> ${pendingOrder.customer.name}</p>
-        <p><strong>Telepon:</strong> ${pendingOrder.customer.phone}</p>
-        <p><strong>Alamat:</strong> ${pendingOrder.customer.address}</p>
-    `;
+    if(document.getElementById('customerDetails')) {
+        document.getElementById('customerDetails').innerHTML = `
+            <p><strong>Penerima:</strong> ${pendingOrder.customer.name}</p>
+            <p><strong>Telepon:</strong> ${pendingOrder.customer.phone}</p>
+            <p><strong>Alamat:</strong> ${pendingOrder.customer.address}</p>
+        `;
+    }
 }
 
 function handlePayment() {
-    // 1. Validasi Metode Pembayaran
     const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
     if (!selectedMethod) {
         showCustomModal('Pembayaran Gagal', 'Silakan pilih metode pembayaran terlebih dahulu!', 'error');
         return;
     }
 
-    // 2. Simulasi Loading
     const btn = document.querySelector('.btn-primary');
-    const originalText = btn.innerText;
-    btn.innerText = 'Memproses...';
-    btn.disabled = true;
+    if(btn) {
+        const originalText = btn.innerText;
+        btn.innerText = 'Memproses...';
+        btn.disabled = true;
 
-    // 3. Proses Pembayaran (Simulasi Delay)
-    setTimeout(() => {
-        // Skenario Sukses (Bisa ditambahkan random fail jika mau)
-        const isSuccess = true; 
-
-        if (isSuccess) {
-            // Bersihkan data
-            localStorage.removeItem('serenityCart');
-            localStorage.removeItem('pendingOrder');
-            localStorage.removeItem('wheelPlayed'); // Reset game (opsional)
-            
-            showCustomModal('Pembayaran Berhasil!', 'Terima kasih telah berbelanja. Anda akan dialihkan ke halaman utama.', 'success');
-            
-            // Redirect ke Home setelah 3 detik
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 3000);
-        } else {
-            showCustomModal('Pembayaran Gagal', 'Terjadi kesalahan pada gateway pembayaran. Silakan coba lagi.', 'error');
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-    }, 2000);
+        setTimeout(() => {
+            const isSuccess = true; 
+            if (isSuccess) {
+                localStorage.removeItem('serenityCart');
+                localStorage.removeItem('pendingOrder');
+                // localStorage.removeItem('wheelPlayedTime'); // Opsional: reset wheel setelah beli
+                
+                showCustomModal('Pembayaran Berhasil!', 'Terima kasih telah berbelanja. Anda akan dialihkan ke halaman utama.', 'success');
+                setTimeout(() => { window.location.href = 'index.html'; }, 3000);
+            } else {
+                showCustomModal('Pembayaran Gagal', 'Terjadi kesalahan pada gateway pembayaran.', 'error');
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }, 2000);
+    }
 }
 
-// ===== CHECKOUT PROCESS (MODIFIED) =====
+// ===== CHECKOUT PROCESS (To Payment Page) =====
 function processOrder(e) {
     e.preventDefault();
-    
-    // Ambil nilai numerik dari teks (hapus "Rp " dan titik)
     const getVal = (id) => parseInt(document.getElementById(id).innerText.replace(/[^0-9]/g, '')) || 0;
     
-    // Simpan data pesanan ke LocalStorage untuk halaman pembayaran
     const orderData = {
         cart: cart,
         subtotal: document.getElementById('subtotal').innerText,
@@ -194,18 +220,24 @@ function processOrder(e) {
     };
 
     localStorage.setItem('pendingOrder', JSON.stringify(orderData));
-    
-    // Redirect ke Halaman Pembayaran
     window.location.href = 'payment.html';
 }
 
-// ===== STANDARD FUNCTIONS (Catalog, Wheel, etc) =====
+// ===== LOAD PRODUCTS (Updated with Search) =====
 function loadProducts() {
     const grid = document.getElementById('productGrid');
     const paginationContainer = document.getElementById('pagination');
     if (!grid) return;
     
-    let filtered = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
+    // FILTER: Kategori DAN Search Query
+    let filtered = products.filter(p => {
+        const matchCategory = currentFilter === 'all' || p.category === currentFilter;
+        const matchSearch = p.name.toLowerCase().includes(searchQuery) || 
+                            p.description.toLowerCase().includes(searchQuery);
+        return matchCategory && matchSearch;
+    });
+    
+    // PAGINATION
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     if(currentPage > totalPages) currentPage = 1;
     
@@ -213,34 +245,46 @@ function loadProducts() {
     const end = start + itemsPerPage;
     const paginatedItems = filtered.slice(start, end);
     
-    grid.innerHTML = paginatedItems.map((product, index) => `
-        <div class="product-card" data-aos="fade-up" data-aos-delay="${index * 50}">
-            <div class="card-image-wrapper">
-                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/300'">
-                <span class="stock-badge">${product.stock} left</span>
-            </div>
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <p class="price">Rp ${product.price.toLocaleString('id-ID')}</p>
-                <div class="product-actions">
-                    <button class="btn btn-outline" onclick="showProductDetail(${product.id})">Detail</button>
-                    <button class="btn btn-primary" onclick="showProductDetail(${product.id})">Beli</button>
+    // RENDER ITEMS
+    if (paginatedItems.length > 0) {
+        grid.innerHTML = paginatedItems.map((product, index) => `
+            <div class="product-card" data-aos="fade-up" data-aos-delay="${index * 50}">
+                <div class="card-image-wrapper">
+                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/300'">
+                    <span class="stock-badge">${product.stock} left</span>
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p class="price">Rp ${product.price.toLocaleString('id-ID')}</p>
+                    <div class="product-actions">
+                        <button class="btn btn-outline" onclick="showProductDetail(${product.id})">Detail</button>
+                        <button class="btn btn-primary" onclick="showProductDetail(${product.id})">Beli</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    } else {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+            <h3>Produk tidak ditemukan 🔍</h3>
+            <p>Coba kata kunci lain.</p>
+        </div>`;
+    }
 
+    // RENDER PAGINATION
     if (paginationContainer) {
         let html = '';
         if(totalPages > 1) {
             html += `<button class="page-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Prev</button>`;
-            for(let i=1; i<=totalPages; i++) html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+            for(let i=1; i<=totalPages; i++) {
+                html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+            }
             html += `<button class="page-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
         }
         paginationContainer.innerHTML = html;
     }
 }
 
+// ===== OTHER STANDARD FUNCTIONS =====
 function loadFlashSale() {
     const container = document.getElementById('bestSellerGrid');
     if (!container) return;
@@ -259,13 +303,22 @@ function loadFlashSale() {
     `).join('');
 }
 
+// ===== WHEEL OF FORTUNE (DAILY RESET) =====
+let wheelSpinning = false;
+let currentRotation = 0;
+
 function spinWheel() {
     if (wheelSpinning) return;
-    if (localStorage.getItem('wheelPlayed')) return showCustomModal('Kesempatan Habis', 'Coba lagi besok!', 'info');
+    
+    // Cek apakah sudah main hari ini
+    if (localStorage.getItem('wheelPlayedTime')) {
+        showCustomModal('Kesempatan Habis', 'Anda sudah memutar roda hari ini. Coba lagi besok!', 'info');
+        return;
+    }
 
     const wheel = document.getElementById('wheel');
     const resultDiv = document.getElementById('wheelResult');
-    let wheelSpinning = true;
+    wheelSpinning = true;
 
     const rewards = [
         { label: "ZONK 😢", code: null, min: 0, max: 60 },
@@ -278,7 +331,8 @@ function spinWheel() {
 
     const randomDeg = Math.floor(Math.random() * 360);
     const totalRotation = 1800 + randomDeg;
-    wheel.style.transform = `rotate(${totalRotation}deg)`;
+    
+    if(wheel) wheel.style.transform = `rotate(${totalRotation}deg)`;
 
     setTimeout(() => {
         wheelSpinning = false;
@@ -287,13 +341,15 @@ function spinWheel() {
         const win = rewards.find(r => winningAngle >= r.min && winningAngle < r.max);
         
         if(win && win.code) {
-            resultDiv.innerHTML = `<h3>Dapat ${win.label}</h3><p>Kode: <strong>${win.code}</strong></p><button class="btn btn-primary btn-sm" onclick="copyCode('${win.code}')">Salin</button>`;
+            if(resultDiv) resultDiv.innerHTML = `<h3>Dapat ${win.label}</h3><p>Kode: <strong>${win.code}</strong></p><button class="btn btn-primary btn-sm" onclick="copyCode('${win.code}')">Salin</button>`;
             showCustomModal('Hore!', `Menang ${win.label}!`, 'success');
         } else {
-            resultDiv.innerHTML = `<h3>ZONK...</h3>`;
+            if(resultDiv) resultDiv.innerHTML = `<h3>ZONK...</h3>`;
             showCustomModal('Oops', 'Kurang beruntung.', 'info');
         }
-        localStorage.setItem('wheelPlayed', 'true');
+        
+        // Simpan Waktu Main (Timestamp)
+        localStorage.setItem('wheelPlayedTime', new Date().getTime().toString());
     }, 4000);
 }
 
@@ -308,66 +364,84 @@ function showProductDetail(id) {
                 <div class="detail-info">
                     <h2>${product.name}</h2>
                     <p class="price">Rp ${product.price.toLocaleString('id-ID')}</p>
+                    <div class="specs-box">
+                         <p><strong>Stok:</strong> ${product.stock} unit</p>
+                         <p><strong>Power:</strong> ${product.specs.watt}</p>
+                         <p><strong>Material:</strong> ${product.specs.material}</p>
+                    </div>
                     <p>${product.description}</p>
                     <div class="quantity-control"><button onclick="adjustQty(-1)">-</button><input id="modalQty" value="1" readonly><button onclick="adjustQty(1,${product.stock})">+</button></div>
                     <button class="btn btn-primary" onclick="addToCart(${product.id})" style="margin-top:1rem;">Masuk Keranjang</button>
                 </div>
             </div>`;
-        document.getElementById('productModal').style.display = 'flex';
+        const modal = document.getElementById('productModal');
+        if(modal) modal.style.display = 'flex';
     }
 }
 
 function showCart() {
     if (cart.length === 0) return showCustomModal('Keranjang Kosong', 'Belum ada barang.', 'info');
     renderCheckoutItems();
-    document.getElementById('checkoutModal').style.display = 'flex';
+    const modal = document.getElementById('checkoutModal');
+    if(modal) modal.style.display = 'flex';
 }
 
 function renderCheckoutItems() {
-    document.getElementById('checkoutItems').innerHTML = cart.map(item => `
-        <div class="checkout-item">
-            <img src="${item.image}" style="width:50px;">
-            <div style="flex:1; margin-left:1rem;"><h4>${item.name}</h4><p>${item.quantity} x Rp ${item.price.toLocaleString('id-ID')}</p></div>
-            <button class="btn-remove" onclick="removeFromCart(${item.id})">X</button>
-        </div>`).join('');
-    calculateTotal();
+    const container = document.getElementById('checkoutItems');
+    if(container) {
+        container.innerHTML = cart.map(item => `
+            <div class="checkout-item">
+                <img src="${item.image}" style="width:50px;">
+                <div style="flex:1; margin-left:1rem;"><h4>${item.name}</h4><p>${item.quantity} x Rp ${item.price.toLocaleString('id-ID')}</p></div>
+                <button class="btn-remove" onclick="removeFromCart(${item.id})">X</button>
+            </div>`).join('');
+        calculateTotal();
+    }
 }
 
 function calculateTotal() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = document.getElementById('voucherCode')?.value.toUpperCase() === 'FREESHIP' ? 0 : 20000;
+    const shipping = (document.getElementById('voucherCode') && document.getElementById('voucherCode').value.toUpperCase() === 'FREESHIP') ? 0 : 20000;
     let discount = activeDiscount > 0 ? subtotal * (activeDiscount/100) : 0;
     
-    document.getElementById('subtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-    document.getElementById('discountDisplay').innerText = `- Rp ${discount.toLocaleString('id-ID')}`;
-    document.getElementById('total').innerText = `Rp ${(subtotal + shipping - discount).toLocaleString('id-ID')}`;
+    if(document.getElementById('subtotal')) document.getElementById('subtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+    if(document.getElementById('discountDisplay')) document.getElementById('discountDisplay').innerText = `- Rp ${discount.toLocaleString('id-ID')}`;
+    if(document.getElementById('total')) document.getElementById('total').innerText = `Rp ${(subtotal + shipping - discount).toLocaleString('id-ID')}`;
 }
 
 function applyVoucher() {
-    const code = document.getElementById('voucherCode').value.toUpperCase();
+    const codeInput = document.getElementById('voucherCode');
+    if(!codeInput) return;
+    
+    const code = codeInput.value.toUpperCase();
     if(code === 'LUCKY10') activeDiscount = 10;
-    else if(code === 'FREESHIP') activeDiscount = 0; // handled in calcTotal
+    else if(code === 'LUCKY5') activeDiscount = 5;
+    else if(code === 'LUCKY15') activeDiscount = 15;
+    else if(code === 'SUPER20') activeDiscount = 20;
+    else if(code === 'FREESHIP') activeDiscount = 0; 
     else { showToast('Kode tidak valid'); activeDiscount = 0; }
+    
     calculateTotal();
     if(activeDiscount > 0 || code === 'FREESHIP') showToast('Voucher dipakai!');
 }
 
-function changePage(p) { currentPage = p; loadProducts(); document.getElementById('productGrid').scrollIntoView({behavior:'smooth'}); }
-function filterProducts(c) { currentFilter = c; currentPage=1; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); loadProducts(); }
-function adjustQty(d,m){const i=document.getElementById('modalQty');let v=parseInt(i.value)+d;if(v<1)v=1;if(m&&v>m)v=m;i.value=v;}
-function closeProductModal(){document.getElementById('productModal').style.display='none';}
-function closeCheckout(){document.getElementById('checkoutModal').style.display='none';}
-function showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function changePage(p) { currentPage = p; loadProducts(); const g=document.getElementById('productGrid'); if(g) g.scrollIntoView({behavior:'smooth'}); }
+function adjustQty(d,m){const i=document.getElementById('modalQty');if(i){let v=parseInt(i.value)+d;if(v<1)v=1;if(m&&v>m)v=m;i.value=v;}}
+function closeProductModal(){const m=document.getElementById('productModal');if(m)m.style.display='none';}
+function closeCheckout(){const m=document.getElementById('checkoutModal');if(m)m.style.display='none';}
+function showToast(m){const t=document.getElementById('toast');if(t){t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}}
 function showCustomModal(t,m,type='success'){
     const modal=document.getElementById('customModal');
     const color = type === 'success' ? 'var(--accent)' : '#ef4444';
     const icon = type === 'success' ? '✓' : '⚠';
-    document.getElementById('customModalBody').innerHTML = `<div style="text-align:center;padding:2rem;"><div style="width:60px;height:60px;background:${color};border-radius:50%;color:white;font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">${icon}</div><h2>${t}</h2><p>${m}</p></div>`;
-    modal.style.display='flex';
+    const body = document.getElementById('customModalBody');
+    if(body) body.innerHTML = `<div style="text-align:center;padding:2rem;"><div style="width:60px;height:60px;background:${color};border-radius:50%;color:white;font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">${icon}</div><h2>${t}</h2><p>${m}</p></div>`;
+    if(modal) modal.style.display='flex';
 }
-function closeCustomModal(){document.getElementById('customModal').style.display='none';}
+function closeCustomModal(){const m=document.getElementById('customModal');if(m)m.style.display='none';}
 function copyCode(c){navigator.clipboard.writeText(c);showToast('Disalin!');}
 
+// Event untuk menutup modal saat klik luar
 window.onclick = function(e) {
     ['productModal','checkoutModal','customModal'].forEach(id=>{
         const m=document.getElementById(id);
