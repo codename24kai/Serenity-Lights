@@ -1401,3 +1401,93 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== PARTNER INFINITE SCROLL ===== */
+.partners-section {
+    padding: 3rem 0;
+    background: var(--bg-primary); /* Menyatu dengan background utama */
+    border-bottom: 1px solid var(--glass-border);
+    overflow: hidden;
+}
+
+.partners-section .section-title {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.slider {
+    height: 100px;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+/* Efek Fade di Kiri dan Kanan agar terlihat halus */
+.slider::before,
+.slider::after {
+    background: linear-gradient(to right, var(--bg-primary) 0%, rgba(255, 255, 255, 0) 100%);
+    content: "";
+    height: 100px;
+    position: absolute;
+    width: 150px;
+    z-index: 2;
+}
+
+.slider::after {
+    right: 0;
+    top: 0;
+    transform: rotateZ(180deg);
+}
+
+.slider::before {
+    left: 0;
+    top: 0;
+}
+
+.slide-track {
+    animation: scroll 30s linear infinite;
+    display: flex;
+    width: calc(200px * 14); /* 200px dikali jumlah total slide (7 asli + 7 duplikat) */
+}
+
+.slide {
+    height: 100px;
+    width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Gaya Logo / Teks Partner */
+.partner-icon {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    font-style: normal;
+    color: #4b5563; /* Warna Abu-abu Default */
+    transition: all 0.3s ease;
+    cursor: pointer;
+    /* Jika menggunakan gambar img, gunakan filter: grayscale(100%); */
+}
+
+/* Efek Hover Neon Ungu */
+.partner-icon:hover {
+    color: var(--accent); /* Warna Ungu Neon */
+    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); /* Efek Glowing */
+    transform: scale(1.1); /* Sedikit membesar */
+    
+    /* Jika menggunakan gambar img, gunakan kode ini: */
+    /* filter: grayscale(0%) drop-shadow(0 0 5px var(--accent)); */
+}
+
+/* Animasi Jalan */
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-200px * 7)); } /* Geser sejauh jumlah item asli */
+}
+
+/* Pause animasi saat user hover di area slider */
+.slider:hover .slide-track {
+    animation-play-state: paused;
+}
