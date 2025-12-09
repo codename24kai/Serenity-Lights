@@ -51,27 +51,23 @@
         </div>
     </section>
 
-    <!-- Flash Sale Section -->
-    <section class="flash-sale" data-aos="fade-up">
+    <section class="best-sellers" style="padding: 4rem 0;">
         <div class="container">
-            <div class="flash-header">
-                <h2>⚡ Flash Sale</h2>
-                <div class="countdown" id="countdown">
-                    <div class="time-unit">
-                        <span class="time-value" id="hours">12</span>
-                        <span class="time-label">Hours</span>
-                    </div>
-                    <div class="time-unit">
-                        <span class="time-value" id="minutes">34</span>
-                        <span class="time-label">Minutes</span>
-                    </div>
-                    <div class="time-unit">
-                        <span class="time-value" id="seconds">56</span>
-                        <span class="time-label">Seconds</span>
-                    </div>
+            <h2 class="section-title" data-aos="fade-up">Produk Terlaris</h2>
+            <div class="product-grid" id="bestSellerGrid">
+                </div>
+        </div>
+    </section>
+
+    <section class="minigame-section" id="minigameSection" data-aos="zoom-in">
+        <div class="container">
+            <div class="game-card">
+                <h2>🎮 Main & Menang Voucher!</h2>
+                <p>Coba keberuntunganmu untuk mendapatkan diskon spesial.</p>
+                <div id="gameArea">
+                    <button class="btn btn-primary" onclick="playMinigame()">Mainkan Sekarang</button>
                 </div>
             </div>
-            <div class="flash-products" id="flashProducts"></div>
         </div>
     </section>
 
@@ -200,14 +196,24 @@
             <div class="checkout-container">
                 <h2>Shopping Cart</h2>
                 <div id="checkoutItems"></div>
+                
+                <div class="voucher-input" style="margin: 1rem 0; display: flex; gap: 0.5rem;">
+                    <input type="text" id="voucherCode" placeholder="Punya kode voucher?">
+                    <button class="btn btn-primary" onclick="applyVoucher()" style="padding: 0.5rem 1rem;">Gunakan</button>
+                </div>
+
                 <div class="checkout-summary">
-                    <h3>Order Summary</h3>
+                    <h3>Ringkasan Pesanan</h3>
                     <div class="summary-row">
                         <span>Subtotal:</span>
                         <span id="subtotal">Rp 0</span>
                     </div>
                     <div class="summary-row">
-                        <span>Shipping:</span>
+                        <span>Diskon:</span>
+                        <span id="discountDisplay" style="color: var(--accent);">Rp 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Ongkir:</span>
                         <span>Rp 20.000</span>
                     </div>
                     <div class="summary-row total">
@@ -216,13 +222,11 @@
                     </div>
                 </div>
                 <form class="checkout-form" onsubmit="processOrder(event)">
-                    <h3>Shipping Details</h3>
-                    <input type="text" placeholder="Full Name" required>
-                    <input type="tel" placeholder="Phone Number" required>
-                    <textarea placeholder="Complete Address" rows="3" required></textarea>
-                    <input type="text" placeholder="City" required>
-                    <input type="text" placeholder="Postal Code" required>
-                    <button type="submit" class="btn btn-primary">Complete Order</button>
+                    <h3>Detail Pengiriman</h3>
+                    <input type="text" placeholder="Nama Lengkap" required>
+                    <input type="tel" placeholder="Nomor Telepon" required>
+                    <textarea placeholder="Alamat Lengkap" rows="3" required></textarea>
+                    <button type="submit" class="btn btn-primary btn-full">Selesaikan Pesanan</button>
                 </form>
             </div>
         </div>

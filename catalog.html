@@ -49,12 +49,16 @@
     <section class="catalog-section">
         <div class="container">
             <div class="catalog-filters" data-aos="fade-up">
-                <button class="filter-btn active" onclick="filterProducts('all')">All Products</button>
-                <button class="filter-btn" onclick="filterProducts('minimalist')">Minimalist</button>
+                <button class="filter-btn active" onclick="filterProducts('all')">Semua</button>
+                <button class="filter-btn" onclick="filterProducts('minimalist')">Minimalis</button>
                 <button class="filter-btn" onclick="filterProducts('modern')">Modern</button>
                 <button class="filter-btn" onclick="filterProducts('smart')">Smart</button>
             </div>
+            
             <div class="product-grid" id="productGrid"></div>
+            
+            <div class="pagination-container" id="pagination" style="margin-top: 3rem; display: flex; justify-content: center; gap: 0.5rem;">
+                </div>
         </div>
     </section>
 
@@ -67,20 +71,30 @@
     </div>
 
     <!-- Checkout Modal -->
-    <div id="checkoutModal" class="modal">
+   <div id="checkoutModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCheckout()">&times;</span>
             <div class="checkout-container">
                 <h2>Shopping Cart</h2>
                 <div id="checkoutItems"></div>
+                
+                <div class="voucher-input" style="margin: 1rem 0; display: flex; gap: 0.5rem;">
+                    <input type="text" id="voucherCode" placeholder="Punya kode voucher?">
+                    <button class="btn btn-primary" onclick="applyVoucher()" style="padding: 0.5rem 1rem;">Gunakan</button>
+                </div>
+
                 <div class="checkout-summary">
-                    <h3>Order Summary</h3>
+                    <h3>Ringkasan Pesanan</h3>
                     <div class="summary-row">
                         <span>Subtotal:</span>
                         <span id="subtotal">Rp 0</span>
                     </div>
                     <div class="summary-row">
-                        <span>Shipping:</span>
+                        <span>Diskon:</span>
+                        <span id="discountDisplay" style="color: var(--accent);">Rp 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Ongkir:</span>
                         <span>Rp 20.000</span>
                     </div>
                     <div class="summary-row total">
@@ -89,13 +103,11 @@
                     </div>
                 </div>
                 <form class="checkout-form" onsubmit="processOrder(event)">
-                    <h3>Shipping Details</h3>
-                    <input type="text" placeholder="Full Name" required>
-                    <input type="tel" placeholder="Phone Number" required>
-                    <textarea placeholder="Complete Address" rows="3" required></textarea>
-                    <input type="text" placeholder="City" required>
-                    <input type="text" placeholder="Postal Code" required>
-                    <button type="submit" class="btn btn-primary">Complete Order</button>
+                    <h3>Detail Pengiriman</h3>
+                    <input type="text" placeholder="Nama Lengkap" required>
+                    <input type="tel" placeholder="Nomor Telepon" required>
+                    <textarea placeholder="Alamat Lengkap" rows="3" required></textarea>
+                    <button type="submit" class="btn btn-primary btn-full">Selesaikan Pesanan</button>
                 </form>
             </div>
         </div>
